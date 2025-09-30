@@ -1,11 +1,11 @@
 # Rapport de Laboratoire : Initial Setup – NanoPi Neo Plus2 avec Buildroot
 
 ## 1. Introduction
-L'objectif de ce laboratoire est de préparer l'environnement de développement pour le NanoPi Neo Plus2, compiler Buildroot pour générer une image SD contenant Linux, et connecter le NanoPi à un ordinateur hôte pour obtenir un shell fonctionnel. Les étapes principales comprennent :  
-- Installation et configuration des outils de développement (Git, Docker, VSCode, balenaEtcher, communication série).  
-- Mise en place de l’environnement containerisé pour le développement.  
-- Téléchargement, configuration et compilation de Buildroot.  
-- Création et inspection de l'image SD.  
+L'objectif de ce laboratoire est de préparer l'environnement de développement pour le NanoPi Neo Plus2, compiler Buildroot pour générer une image SD contenant Linux, et connecter le NanoPi à un ordinateur hôte pour obtenir un shell fonctionnel. Les étapes principales comprennent :
+- Installation et configuration des outils de développement (Git, Docker, VSCode, balenaEtcher, communication série).
+- Mise en place de l’environnement containerisé pour le développement.
+- Téléchargement, configuration et compilation de Buildroot.
+- Création et inspection de l'image SD.
 - Connexion et démarrage du NanoPi.
 
 
@@ -13,7 +13,7 @@ L'objectif de ce laboratoire est de préparer l'environnement de développement 
 
 ### 2.1 Git
 Installation de git
-- Linux : `sudo apt-get install git`  
+- Linux : `sudo apt-get install git`
 
 ### 2.2 Docker
 
@@ -27,7 +27,7 @@ Installation de git
 
 ### 2.4 balenaEtcher
 
-* `dd` a été utilisé 
+* `dd` a été utilisé
 
 ### 2.5 Communication série
 
@@ -98,12 +98,21 @@ make ses_defconfig
 make menuconfig
 ```
 
+You can check in : Build options ---> Location to save buildroot config = ./configs/ses_defconfig
+You can check in : Kernel ---> Kernel version = 6.3.6
+
 ### 4.3 Compilation
 
-* Compilation multi-coeurs :
+* Compilation multi-threads :
 
 ```bash
 make -j4
+```
+
+Nombre non défini de threads:
+
+```bash
+make -j
 ```
 
 * Répertoires principaux :
@@ -196,3 +205,5 @@ sudo picocom -b 115200 /dev/ttyUSB0
 
 5. Login : `root` sans mot de passe
 
+
+Et on est dans la machine !
