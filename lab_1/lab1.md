@@ -85,13 +85,13 @@ On peut aussi le supprimer si besoin. Ensuite, on copie le fichier `boot.scr` g�
 On recherche ensuite le chemin d'accès exact du fichier `boot.scr` et on le copie dans le dossier `/mnt` de la manière suivante :
 
 ```bash
-sudo cp ./output/images/boot.scr /mnt/extlinux/boot.scr
+sudo cp ./output/images/boot.scr /mnt/boot.scr
 ```
 
 Enfin, on démonte la partition `sda1` avec :
 
 ```bash
-sudo umount /mnt
+    sudo umount /mnt
 ```
 
 Il est important d'effectuer cette étape pour éviter la corruption des données et des fichiers.
