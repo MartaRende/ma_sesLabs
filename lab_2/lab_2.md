@@ -235,12 +235,12 @@ Qui liste les fichiers présents sur la partition 1 (partition FAT de démarrage
 
 Ensuite, toujours depuis la console U-Boot, pour load l'image FIT en mémoire, lancer la commande :
 ```bash
-fatload mmc 0:1 0x40000000 kernel_fdt.itb
+fatload mmc 0:1 0x50000000 kernel_fdt.itb
 ```
 
 On peut ensuite inspecter l'image chargée en mémoire avec :
 ```bash
-iminfo 0x40000000
+iminfo 0x50000000
 ```
 
 Cette commande retourne beaucoup d'informations, mais notamment, deux images (`Image 0 (Kernel)` et `Image 1 (fdt)`) ainsi que leur hash, dans mon cas :
@@ -273,7 +273,7 @@ sha256sum sun50i-h5-nanopi-neo-plus2.dtb
 Ensuite, (de retour sur le Pi, dans la console U-Boot), on peut lancer :
 
 ```bash
-bootm 0x40000000
+bootm 0x50000000
 ```
 
 Afin de boot l'image. Et comme prévu, on a l'erreur : `Image too large: increase CONFIG_SYS_BOOTM_LEN`.
