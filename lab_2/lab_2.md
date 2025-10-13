@@ -279,3 +279,81 @@ bootm 0x50000000
 Afin de boot l'image. Et comme prévu, on a l'erreur : `Image too large: increase CONFIG_SYS_BOOTM_LEN`.
 
 Cette erreur nous indique que le buffer alloué par U-Boot en mémoire est trop petit pour notre FIT. Il faudrait donc rebuild U-Boot avec un `CONFIG_SYS_BOOTM_LEN` agrandi.
+
+## Question 3
+
+Le fichier `sunxi-common.h` contient la ligne :
+
+```
+#define CONFIG_SYS_BOOTM_LEN		(32 << 20)
+```
+
+Qui défini donc la taille maximum de l'image bootée par la commande bootm à 32M. Or, notre image fait ~37M, il faut donc agrandir cette limite.
+
+On peut donc modifier cette ligne pour remplacer la valeure 32 par 64 (pour passer à une image maximum de 64M).
+
+Cela nous donne donc cette ligne :
+```
+#define CONFIG_SYS_BOOTM_LEN		(64 << 20)
+```
+
+Le fichier patch pour appliquer ces modifications est [ici](./0001-uboot-image-size-fix.patch), et il est à placer dans le dossier : `./board/friendlyarm/nanopi-neo-plus2/patches/uboot/`.
+
+## Question 4
+
+Pour désactiver l'enregistrement de l'environment par u-boot, on peut ajouter cette ligne au fichier de configuration u-boot `./board/friendlyarm/nanopi-neo-plus2/uboot-extras.config` :
+```
+CONFIG_BOOTDELAY=10
+CONFIG_SYS_PROMPT="NanoPi # "
+CONFIG_ENV_IS_NOWHERE=y # <---- Add this line
+```
+
+Pour que le script `boot.cmd` puisse lire d'une partition ext4 (et non plus VFAT), il faut enlever les lignes commençant par `fatload` par cette ligne :
+```
+ext4load mmc 0:1 0x50000000 kernel_fdt.itb
+```
+
+Ensuite, nous devons modifier le fichier `genimage.cfg` afin de retirer la création de l'image boot FVAT. Nous devons donc supprimer les lignes :
+```
+image boot.vfat {
+  vfat {
+  	files = {
+  		"boot.scr",
+  		"kernel_fdt.itb"
+  	}
+  }
+  size = 64M
+}
+```
+
+Et, changer la partie :
+```
+partition boot {
+	partition-type = 0xC
+	bootable = "true"
+	# image = "boot.vfat" # <- Change this line
+	image = "boot.ext4" # <-- For this one
+}
+```
+
+Afin de charger la bonne image dans la bonne partition sur la carte SD.
+
+Maintenant, il faut automatiser la création de l'image boot.ext4, pour ce faire, il faut modifier le fichier `post-build.sh` et rajouter cette partie là à la fin du fichier :
+```
+# --- Create boot.ext4 ---
+
+# 1. Copy boot files from the binaries directory to a temporary location
+cp "${BINARIES_DIR}/boot.scr" "${BOOT_TMP_DIR}/"
+cp "${BINARIES_DIR}/kernel_fdt.itb" "${BOOT_TMP_DIR}/"
+
+# 2. Create a 64MB ext4 image named boot.ext4 from the temporary directory
+echo "Creating boot.ext4 with boot files..."
+mkfs.ext4 -d "${BOOT_TMP_DIR}" -L boot "${BINARIES_DIR}/boot.ext4" 64M
+
+# 3. Clean up the temporary directory
+rm -rf "${BOOT_TMP_DIR}"
+
+echo "Successfully created boot.ext4"
+```
+
+Après ça, on peut relancer un build complet.

@@ -1,5 +1,5 @@
---- output/build/uboot-2020.10-rc5/include/configs/sunxi-common.h	2020-09-21 19:45:23.000000000 +0200
-+++ output/build/new-uboot/include/configs/sunxi-common.h	2025-10-06 12:27:49.452703669 +0200
+--- a/include/configs/sunxi-common.h	2020-09-21 19:45:23.000000000 +0200
++++ b/include/configs/sunxi-common.h	2025-10-06 12:27:49.452703669 +0200
 @@ -32,7 +32,7 @@
  #endif
  
