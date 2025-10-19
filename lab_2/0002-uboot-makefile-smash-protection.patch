@@ -1,0 +1,90 @@
+From 71fc17e7f049984ae3178f4bf59c850422ca0d19 Mon Sep 17 00:00:00 2001
+From: MartTave <55973969+MartTave@users.noreply.github.com>
+Date: Mon, 13 Oct 2025 15:28:41 +0200
+Subject: [PATCH] Patched
+
+---
+ Makefile        |  6 +++---
+ lib/Makefile    |  3 +++
+ lib/stackprot.c | 20 ++++++++++++++++++++
+ 3 files changed, 26 insertions(+), 3 deletions(-)
+ create mode 100644 lib/stackprot.c
+
+diff --git a/Makefile b/Makefile
+index dd98b430313..cd9fa69f6ae 100644
+--- a/Makefile
++++ b/Makefile
+@@ -317,7 +317,7 @@ os_x_before	= $(shell if [ $(DARWIN_MAJOR_VERSION) -le $(1) -a \
+ 	$(DARWIN_MINOR_VERSION) -le $(2) ] ; then echo "$(3)"; else echo "$(4)"; fi ;)
+ 
+ os_x_after = $(shell if [ $(DARWIN_MAJOR_VERSION) -ge $(1) -a \
+-	$(DARWIN_MINOR_VERSION) -ge $(2) ] ; then echo "$(3)"; else echo "$(4)"; fi ;)	
++	$(DARWIN_MINOR_VERSION) -ge $(2) ] ; then echo "$(3)"; else echo "$(4)"; fi ;)
+ 
+ # Snow Leopards build environment has no longer restrictions as described above
+ HOSTCC       = $(call os_x_before, 10, 5, "cc", "gcc")
+@@ -329,7 +329,7 @@ KBUILD_HOSTLDFLAGS += $(call os_x_before, 10, 5, "-multiply_defined suppress")
+ # tools
+ KBUILD_HOSTLDFLAGS += $(call os_x_before, 10, 7, "", "-Xlinker -no_pie")
+ 
+-# macOS Mojave (10.14.X) 
++# macOS Mojave (10.14.X)
+ # Undefined symbols for architecture x86_64: "_PyArg_ParseTuple"
+ KBUILD_HOSTLDFLAGS += $(call os_x_after, 10, 14, "-lpython -dynamclib", "")
+ endif
+@@ -677,7 +677,7 @@ else
+ KBUILD_CFLAGS	+= -O2
+ endif
+ 
+-KBUILD_CFLAGS += $(call cc-option,-fno-stack-protector)
++KBUILD_CFLAGS += $(call cc-option,-fstack-protector-strong)
+ KBUILD_CFLAGS += $(call cc-option,-fno-delete-null-pointer-checks)
+ 
+ # disable stringop warnings in gcc 8+
+diff --git a/lib/Makefile b/lib/Makefile
+index 0cd7bea2823..dd0c85aa5ca 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -20,6 +20,7 @@ obj-$(CONFIG_OPTEE) += optee/
+ obj-$(CONFIG_ASN1_DECODER) += asn1_decoder.o
+ obj-y += crypto/
+ 
++
+ obj-$(CONFIG_AES) += aes.o
+ obj-$(CONFIG_AES) += aes/
+ obj-$(CONFIG_$(SPL_TPL_)BINMAN_FDT) += binman.o
+@@ -144,3 +145,5 @@ quiet_cmd_build_OID_registry = GEN     $@
+ clean-files     += oid_registry_data.c
+ 
+ subdir-ccflags-$(CONFIG_CC_OPTIMIZE_LIBS_FOR_SPEED) += -O2
++
++obj-y += stackprot.o
+diff --git a/lib/stackprot.c b/lib/stackprot.c
+new file mode 100644
+index 00000000000..d5b70616655
+--- /dev/null
++++ b/lib/stackprot.c
+@@ -0,0 +1,20 @@
++// SPDX-License-Identifier: GPL-2.0+
++/*
++ *  Copyright 2021 Broadcom
++ */
++
++#include <common.h>
++#include <asm/global_data.h>
++
++DECLARE_GLOBAL_DATA_PTR;
++
++unsigned long __stack_chk_guard = (unsigned long)(0xfeedf00ddeadbeef & ~0UL);
++
++void __stack_chk_fail(void)
++{
++	void *ra;
++
++	ra = __builtin_extract_return_addr(__builtin_return_address(0));
++	panic("Stack smashing detected in function:\n%p relocated from %p",
++	      ra, ra - gd->reloc_off);
++}
+-- 
+2.51.0
+
