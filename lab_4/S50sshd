@@ -1,0 +1,62 @@
+#!/bin/sh
+#
+# sshd        Starts sshd.
+#
+
+# Make sure the ssh-keygen progam exists
+[ -f /usr/bin/ssh-keygen ] || exit 0
+
+umask 077
+
+start() {
+	# Create any missing keys
+	check_and_generate_keys()
+	printf "Starting sshd: "
+	/usr/sbin/sshd
+	touch /var/lock/sshd
+	echo "OK"
+}
+
+check_and_generate_keys() {
+  if [ ! -f /root/.ssh/ssh_host_rsa ]; then
+    ssh-keygen -t rsa -b 4096 -f /root/.ssh/ssh_host_rsa -N ""
+  fi
+  if [ ! -f /root/.ssh/ssh_host_dsa ]; then
+    ssh-keygen -t dsa -b 1024 -f /root/.ssh/ssh_host_dsa -N ""
+  fi
+  if [ ! -f /root/.ssh/ssh_host_ecdsa ]; then
+    ssh-keygen -t ecdsa -b 512 -f /root/.ssh/ssh_host_ecdsa -N ""
+  fi
+  if [ ! -f /root/.ssh/ssh_host_ed25519 ]; then
+    ssh-keygen -t ed25519 -b 256 -f /root/.ssh/ssh_host_ed25519 -N ""
+  fi
+
+}
+
+stop() {
+	printf "Stopping sshd: "
+	killall sshd
+	rm -f /var/lock/sshd
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  restart|reload)
+	restart
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart}"
+	exit 1
+esac
+
+exit $?
